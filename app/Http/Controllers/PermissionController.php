@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Controllers;
+use Illuminate\Http\Request;
+use Spatie\Permission\Models\Permission;
+
+class PermissionController extends Controller
+{
+    //
+    public function index()
+    {
+        // $permission=Permission::get();
+        $permission = Permission::orderBy('created_at', 'desc')->get();
+       return view('role-permission.permission.index',['permissions'=>$permission]);
+    }
+
+    public function create()
+    {
+        return view('role-permission.permission.create');
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'unique:permissions,name', 
+            ],
+        ]);
+        
+
+        Permission::create([
+            'name'=>$request->name
+        ]);
+
+        return redirect('permissions')->with('status','Permission Created Successfully!');
+    }
+
+    public function edit(Permission $permission)
+    {
+        return view('role-permission.permission.edit',['permission'=>$permission]);
+    }
+
+    public function update(Request $request, Permission $permission)
+    {
+        // Validate the request
+        $request->validate([
+            'name' => [
+                'required',
+                'string',
+                'unique:permissions,name,' . $permission->id, // Ensures the name is unique except for the current permission
+            ],
+        ]);
+    
+        // Update the permission using the instance method
+        $permission->update([
+            'name' => $request->name,
+        ]);
+    
+        // Redirect back with a success message
+        return redirect('permissions')->with('status', 'Permission Updated Successfully!');
+    }
+    
+    public function destroy($permissionId)
+    {
+        $permission= Permission::find($permissionId);
+        $permission->delete();
+        return redirect('permissions')->with('status', 'Permission Removed Successfully!');
+    }
+}
